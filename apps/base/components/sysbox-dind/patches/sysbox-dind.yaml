@@ -1,0 +1,47 @@
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: RunnerDeployment
+metadata:
+  name: not-important
+spec:
+  template:
+    metadata:
+      annotations:
+        io.kubernetes.cri-o.userns-mode: "auto"
+    spec:
+      runtimeClassName: sysbox-runc
+      tolerations:
+        - effect: NoSchedule
+          key: k8s.tubi.io/sysbox
+          operator: Equal
+          value: "true"
+        - key: "k8s.tubi.io/worker-type"
+          operator: "Equal"
+          value: "sysbox"
+          effect: "NoSchedule"
+      containers:
+        - name: docker
+          image: public.ecr.aws/docker/library/docker:27.0.3-dind
+          imagePullPolicy: IfNotPresent
+          args:
+          - '--registry-mirror=http://registry-cache.default:5000'
+          volumeMounts:
+          - mountPath: /runner
+            name: runner
+          - mountPath: /var/lib/docker
+            name: imagedir
+          env:
+          - name: DOCKER_TLS_CERTDIR
+        - name: runner
+          env:
+          - name: DOCKER_HOST
+            value: tcp://localhost:2375
+      volumes:
+        - name: imagedir
+          ephemeral:
+            volumeClaimTemplate:
+              spec:
+                accessModes: [ "ReadWriteOnce" ]
+                storageClassName: "ebs-gp3"
+                resources:
+                  requests:
+                    storage: 20Gi

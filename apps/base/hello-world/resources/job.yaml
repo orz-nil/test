@@ -1,0 +1,12 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hello-world-hubble-notify
+  annotations:
+    tubi/enable-hubble-updater: enabled
+    tubi/enable-vault: enabled
+spec:
+  template:
+    metadata:
+      annotations:
+        hubble-project-id: "hello-world"

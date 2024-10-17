@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: not-important
+  labels:
+    canary: "canary"
+spec:
+  selector:
+    matchLabels:
+      canary: "canary"
+  template:
+    metadata:
+      labels:
+        canary: "canary"

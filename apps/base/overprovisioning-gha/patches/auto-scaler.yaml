@@ -1,0 +1,10 @@
+- op: replace
+  path: /spec/template/spec/containers/0/args
+  value: 
+    - --configmap=overprovisioning-cluster-proportional-autoscaler
+    - --logtostderr=true
+    - --namespace=actions-runner-system
+    - --target=deployment/overprovisioning
+    - --v=0
+    - --max-sync-failures=0
+    - --nodelabels=k8s.tubi.io/githubactions=true

@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: overprovisioning-gpu
+spec:
+  template:
+    spec:
+      priorityClassName: overprovisioning
+      containers:
+      - name: reserve-resources
+        image: public.ecr.aws/eks-distro/kubernetes/pause:3.9
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            # The 4 cpu figure is half of the capacity of the p3.2xlarge machines
+            cpu: 4
+            memory: 2Gi
+            nvidia.com/gpu: 1
+          limits:
+            cpu: 4
+            memory: 2Gi
+            nvidia.com/gpu: 1
+      tolerations:
+      - effect: NoSchedule
+        key: k8s.tubi.io/gpu
+        operator: Exists
+      - effect: NoSchedule
+        key: k8s.tubi.io/worker-type
+        operator: Equal
+        value: gpu

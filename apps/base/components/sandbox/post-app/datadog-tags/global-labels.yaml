@@ -1,0 +1,24 @@
+apiVersion: builtin
+kind: LabelTransformer
+metadata:
+  name: notimportant
+labels:
+  tags.datadoghq.com/env: sandbox
+fieldSpecs:
+  - path: metadata/labels
+    create: true
+  - kind: Deployment
+    path: spec/template/metadata/labels
+    create: true
+  - kind: ModelSetDeployment
+    path: spec/template/metadata/labels
+    create: true
+  - kind: StatefulSet
+    path: spec/template/metadata/labels
+    create: true
+  - kind: CronJob
+    path: spec/jobTemplate/metadata/labels
+    create: true
+  - kind: CronJob
+    path: spec/jobTemplate/spec/template/metadata/labels
+    create: true

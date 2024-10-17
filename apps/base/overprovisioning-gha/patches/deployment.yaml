@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: overprovisioning
+spec:
+  template:
+    spec:
+      tolerations:
+        - effect: NoSchedule
+          key: k8s.tubi.io/githubactions
+          operator: Equal
+          value: "true"
+        - key: "k8s.tubi.io/worker-type"
+          operator: "Equal"
+          value: "githubactions"
+          effect: "NoSchedule"
+      nodeSelector:
+        k8s.tubi.io/githubactions: "true"
+      containers:
+      - name: reserve-resources
+        resources:
+          requests:
+            cpu: 3
+            memory: 6Gi
+          limits:
+            cpu: 3
+            memory: 6Gi

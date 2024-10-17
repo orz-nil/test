@@ -1,0 +1,4 @@
+- op: replace
+  path: /spec/template/spec/nodeSelector
+  value:
+    k8s.tubi.io/sysbox: "true" 

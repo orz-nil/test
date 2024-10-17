@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: not-important
+spec:
+  # @TODO:
+  #   shareProcessNamespace not avaliable in our cluster, https://kubernetes.io/docs/tasks/configure-pod-container/share-process-namespace/
+  template:
+    spec:
+      containers:
+        - name: debugger
+          image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/nicolaka/netshoot:v0.11-1
+          command: 
+            - /bin/sh
+            - -c
+          args:
+            - "sleep infinity"

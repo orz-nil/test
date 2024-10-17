@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+patches:
+  - path: patches/job.yaml
+    target:
+      kind: Job
+      annotationSelector: tubi/enable-hubble-updater=enabled
+
+  - path: patches/job-v2.yaml
+    target:
+      kind: Job
+      annotationSelector: tubi/enable-hubble-updater-v2=enabled
+
+  - path: patches/image-tag-reader-v2.yaml
+    target:
+      kind: Job
+      annotationSelector: tubi/enable-hubble-image-tag-reader-v2=enabled,tubi/enable-hubble-updater-v2=enabled

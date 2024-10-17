@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: overprovisioning
+spec:
+  selector:
+    matchLabels:
+      run: overprovisioning
+  template:
+    metadata:
+      labels:
+        run: overprovisioning
+    spec:
+      priorityClassName: overprovisioning
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector: 
+          matchLabels:
+            run: overprovisioning
+      containers:
+      - name: reserve-resources
+        image: public.ecr.aws/eks-distro/kubernetes/pause:3.9
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            # use a reasonbly small value to ensure minimum _extra_ overhead
+            # do not use too small a number as this wil result to excessive
+            # noise in metrics and IP space
+            cpu: 16
+            memory: 32Gi

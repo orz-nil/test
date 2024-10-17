@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: not-important
+  labels:
+    tags.datadoghq.com/env: "sandbox"
+spec:
+  template:
+    metadata:
+      labels:
+        tags.datadoghq.com/env: "sandbox"

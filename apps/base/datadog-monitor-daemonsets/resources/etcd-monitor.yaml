@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: etcd-monitor
+spec:
+  selector:
+    matchLabels:
+      name: etcd-monitor
+  template:
+    metadata:
+      annotations:
+        ad.datadoghq.com/etcd.check_names: '["etcd"]'
+        ad.datadoghq.com/etcd.init_configs: '[{}]'
+        ad.datadoghq.com/etcd.instances: |
+          [{"prometheus_url": "https://%%host%%:2379/metrics",
+                    "use_preview": "true",
+                    "ssl_ca_cert": "/etc/kubernetes/ssl/kube-ca.pem",
+                    "ssl_private_key": "/etc/kubernetes/ssl/kube-etcd-----key.pem",
+                    "ssl_cert": "/etc/kubernetes/ssl/kube-etcd----.pem",
+                    "leader_election": "true"}]
+      labels:
+        name: etcd-monitor
+    spec:
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - '[ ! -f /etc/kubernetes/ssl/kube-etcd-----.pem ] && ls /etc/kubernetes/ssl/kube-etcd-*.pem
+          | grep -v -- ''---'' | sort | head -n2 | xargs -I AA sh -c ''ln -s AA $(echo
+          AA|tr -d [0-9])'' || echo ''link exists'''
+        image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/busybox:2022-11-24
+        imagePullPolicy: IfNotPresent
+        name: init-certs
+        resources:
+          requests:
+            cpu: 50m
+            memory: 50Mi
+        volumeMounts:
+        - mountPath: /etc/kubernetes/ssl/
+          mountPropagation: None
+          name: kube-certs
+      containers:
+      - command:
+        - sleep
+        - infinity
+        image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/busybox:2022-11-24
+        imagePullPolicy: IfNotPresent
+        name: etcd
+        resources:
+          requests:
+            cpu: 50m
+            memory: 50Mi
+      hostNetwork: true
+      nodeSelector:
+        node-role.kubernetes.io/etcd: "true"
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 0
+      tolerations:
+      - effect: NoExecute
+        key: node-role.kubernetes.io/etcd
+        operator: Equal
+        value: "true"
+      volumes:
+      - hostPath:
+          path: /etc/kubernetes/ssl
+        name: kube-certs
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: "30%"
+    type: RollingUpdate

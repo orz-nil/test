@@ -1,0 +1,9 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: teldon-crt
+spec:
+  dnsNames:
+    - teldon.chiyu-custom.staging.sandbox.tubi.io
+  issuerRef:
+    name: chiyu-custom.staging.sandbox.tubi.io-issuer

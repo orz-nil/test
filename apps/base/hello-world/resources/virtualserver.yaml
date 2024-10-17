@@ -1,0 +1,21 @@
+apiVersion: k8s.nginx.org/v1
+kind: VirtualServer
+metadata:
+  name: hello-world
+  annotations:
+    tubi/enable-whitelist: "enabled"
+spec:
+  host: hello-world # hostname to match
+  upstreams:
+  - name: hello-world
+    service: hello-world # service name
+    # port: 8080 # app port
+    port: 8001 # envoy port
+  routes:
+  - path: /
+    action:
+      pass: hello-world
+    location-snippets: |
+      opentracing on;
+      opentracing_propagate_context;
+      opentracing_tag foo bar;

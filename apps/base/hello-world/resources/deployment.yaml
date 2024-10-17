@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world
+  labels:
+    tags.datadoghq.com/service: hello-world
+  annotations:
+    tubi/enable-envoy: enabled
+    tubi/enable-envoy-dd-apm: enabled
+spec:
+  replicas: 0
+  template:
+    metadata:
+      labels:
+        tags.datadoghq.com/service: hello-world
+      annotations:
+        control-plane-clustername: hello_world_k8s
+    spec:
+      containers:
+      - name: hello-world
+        image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/hello-world:jwu-1623384341
+      - image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/nicolaka/netshoot:v0.11-1
+        command:
+          - sleep
+          - infinity
+        name: netshoot

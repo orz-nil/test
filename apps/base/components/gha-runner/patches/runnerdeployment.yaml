@@ -1,0 +1,27 @@
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: RunnerDeployment
+metadata:
+  name: runner
+spec:
+  template:
+    spec:
+      serviceAccountName: runner
+      dockerEnabled: false
+      image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/infra/github-actions-runner:v2.315.0
+      imagePullPolicy: IfNotPresent
+      env:
+      - name: RUNNER_FEATURE_FLAG_EPHEMERAL
+        value: "true"
+      - name: RUNNER_STATUS_UPDATE_HOOK
+        value: "true"
+      nodeSelector:
+        k8s.tubi.io/githubactions: "true"
+      tolerations:
+        - key: "k8s.tubi.io/githubactions"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
+        - key: "k8s.tubi.io/worker-type"
+          operator: "Equal"
+          value: "githubactions"
+          effect: "NoSchedule"

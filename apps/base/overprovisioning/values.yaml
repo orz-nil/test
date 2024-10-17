@@ -1,0 +1,10 @@
+options:
+  target: deployment/overprovisioning
+  nodeLabels:
+    k8s.tubi.io/generic: 'true'
+config:
+  linear:
+    coresPerReplica: 336 # equates to a 5% over-provisioning of CPU w/ 16 CPU reservation pods
+    min: 4
+    max: 150
+    includeUnschedulableNodes: false

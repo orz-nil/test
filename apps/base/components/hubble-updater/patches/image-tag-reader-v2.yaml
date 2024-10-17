@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: not-important
+  annotations:
+    tubi/enable-hubble-image-tag-reader-v2: enabled
+    tubi/enable-vault: enabled
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: image-tag-reader
+          image: rancher/hyperkube:v1.20.11-rancher1
+          volumeMounts:
+            - name: shared
+              mountPath: /tmp/shared
+          command: ["/bin/sh"]
+          args:
+            - -c
+            - |
+              image_tags=$(kubectl get deploy $DEPLOYMENT_NAME -o json | jq -r '[
+                (
+                  .spec.template.spec.containers +
+                  .spec.template.spec.initContainers
+                )[]
+                | .image
+                | select(type=="string")
+                | split("amazonaws.com/")[1]
+                | select(type=="string")
+              ] | join(",")')
+              echo "export IMAGE_TAGS=$image_tags" | tee -a /tmp/shared/envs
+          env:
+            - name: DEPLOYMENT_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['hubble-image-tag-reader-deployment-name']

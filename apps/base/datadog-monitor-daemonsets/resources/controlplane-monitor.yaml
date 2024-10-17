@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: controlplane-monitor
+spec:
+  selector:
+    matchLabels:
+      name: controlplane-monitor
+  template:
+    metadata:
+      annotations:
+        ad.datadoghq.com/kube-apiserver.check_names: '["kube_apiserver_metrics"]'
+        ad.datadoghq.com/kube-apiserver.init_configs: '[{}]'
+        ad.datadoghq.com/kube-apiserver.instances: '[{"prometheus_url": "https://%%host%%:6443/metrics",
+          "tls_ca_cert": "/etc/kubernetes/ssl/kube-ca.pem"}]'
+        ad.datadoghq.com/kube-controller-manager.check_names: '["kube_controller_manager"]'
+        ad.datadoghq.com/kube-controller-manager.init_configs: '[{}]'
+        ad.datadoghq.com/kube-controller-manager.instances: '[{"prometheus_url": "https://%%host%%:10257/metrics",
+          "leader_election": "true", "tls_verify": "false", "bearer_token_auth": "true"}]'
+        ad.datadoghq.com/kube-scheduler.check_names: '["kube_scheduler"]'
+        ad.datadoghq.com/kube-scheduler.init_configs: '[{}]'
+        ad.datadoghq.com/kube-scheduler.instances: '[{"prometheus_url": "https://%%host%%:10259/metrics",
+          "leader_election": "true", "tls_verify": "false", "bearer_token_auth": "true"}]'
+      labels:
+        name: controlplane-monitor
+    spec:
+      containers:
+      - command:
+        - sleep
+        - infinity
+        image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/busybox:2022-11-24
+        imagePullPolicy: IfNotPresent
+        name: kube-scheduler
+        resources:
+          requests:
+            cpu: 50m
+            memory: 50Mi
+      - command:
+        - sleep
+        - infinity
+        image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/busybox:2022-11-24
+        imagePullPolicy: IfNotPresent
+        name: kube-controller-manager
+        resources:
+          requests:
+            cpu: 50m
+            memory: 50Mi
+      - command:
+        - sleep
+        - infinity
+        image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/busybox:2022-11-24
+        imagePullPolicy: IfNotPresent
+        name: kube-apiserver
+        resources:
+          requests:
+            cpu: 50m
+            memory: 50Mi
+      hostNetwork: true
+      nodeSelector:
+        node-role.kubernetes.io/controlplane: "true"
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 0
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/controlplane
+        operator: Equal
+        value: "true"
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: "30%"
+    type: RollingUpdate

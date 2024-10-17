@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - resources/sandbox.namespace.yaml
+  - ../../base/tubi-infra-dns-test
+
+components:
+  - ../../base/components/common
+
+namespace: sandbox
+
+commonAnnotations:
+  environment: sandbox
+  provider: kustomize
+
+patches:
+  - path: patches/teldon/certificate.yaml
+    target:
+      kind: Certificate
+  - path: patches/teldon/deployment_message-dumper.yaml
+    target:
+      kind: Deployment
+
+  - path: patches/dd-common-tags.yaml
+    target:
+      kind: Deployment
+
+  - path: patches/dd-common-tags.yaml
+    target:
+      kind: StatefulSet

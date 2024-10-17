@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fortio
+  annotations:
+    tubi/enable-istio: enabled
+spec:
+  replicas: 3
+  template:
+    metadata:
+      annotations:
+        ad.datadoghq.com/logs_exclude: "true"
+    spec:
+      restartPolicy: Always
+      containers:
+      - name: fortio
+        image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/docker-hub/fortio/fortio
+        command: ["/usr/bin/fortio", "server", "-http-port", "0.0.0.0:8000"]
+        resources:
+          limits:
+            cpu: 2
+            memory: 1Gi

@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: not-important
+spec:
+  template:
+    spec:
+      shareProcessNamespace: true
+      containers:
+        - name: debugger
+          image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/nicolaka/netshoot:v0.11-1
+          imagePullPolicy: Always
+          securityContext:
+            capabilities:
+              add:
+              - SYS_PTRACE
+          stdin: true
+          tty: true

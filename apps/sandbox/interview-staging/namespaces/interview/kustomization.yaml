@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: interview
+
+resources:
+  - ../../../../base/opentelemetry
+  - resources/cm-otel-collector.yaml
+
+patches:
+  - path: patches/cm-otel-agent.yaml
+    target:
+      kind: ConfigMap
+      name: otel-agent-conf
+
+  - path: patches/collector.yaml
+    target:
+      kind: Deployment
+      name: otel-collector
+
+  - target:
+      kind: Deployment
+      name: otel-collector
+    patch: |
+      - op: replace
+        path: /spec/template/metadata/annotations
+        value: {}

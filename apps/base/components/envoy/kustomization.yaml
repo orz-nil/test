@@ -1,0 +1,52 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+patches:
+  - path: patches/envoy.yaml
+    target:
+      kind: Deployment
+      annotationSelector: tubi/enable-envoy=enabled
+  - path: patches/envoy.yaml
+    target:
+      kind: ModelSetDeployment
+      annotationSelector: tubi/enable-envoy=enabled
+  - path: patches/envoy.yaml
+    target:
+      kind: StatefulSet
+      annotationSelector: tubi/enable-envoy=enabled
+  - path: patches/envoy-dd-apm.yaml
+    target:
+      kind: Deployment
+      annotationSelector: tubi/enable-envoy-dd-apm=enabled
+  - path: patches/envoy-dd-apm.yaml
+    target:
+      kind: ModelSetDeployment
+      annotationSelector: tubi/enable-envoy-dd-apm=enabled
+  - path: patches/envoy-dd-apm.yaml
+    target:
+      kind: StatefulSet
+      annotationSelector: tubi/enable-envoy-dd-apm=enabled
+  - path: patches/envoy-ingress-service.yaml
+    target:
+      kind: Service
+      annotationSelector: tubi/enable-envoy-ingress=enabled
+
+configMapGenerator:
+  - name: envoy-config
+    files:
+      - files/envoy.yaml
+    options:
+      labels:
+        app: envoy
+  - name: envoy-config-dd-apm
+    files:
+      - files/envoy-dd-apm/envoy.yaml
+    options:
+      labels:
+        app: envoy
+  - name: envoy-config-dd-apm-otel
+    files:
+      - files/envoy-dd-apm-otel/envoy.yaml
+    options:
+      labels:
+        app: envoy

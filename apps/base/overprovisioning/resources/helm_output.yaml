@@ -1,0 +1,111 @@
+---
+# Source: cluster-proportional-autoscaler/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: overprovisioning-cluster-proportional-autoscaler
+  labels:
+    helm.sh/chart: cluster-proportional-autoscaler-1.0.0
+    app.kubernetes.io/name: cluster-proportional-autoscaler
+    app.kubernetes.io/instance: overprovisioning
+    app.kubernetes.io/version: "1.8.4"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: cluster-proportional-autoscaler/templates/configmap.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: overprovisioning-cluster-proportional-autoscaler
+data:
+  linear: |-
+    {"coresPerReplica":336,"includeUnschedulableNodes":false,"max":150,"min":4}
+---
+# Source: cluster-proportional-autoscaler/templates/role.yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: overprovisioning-cluster-proportional-autoscaler
+  labels:
+    helm.sh/chart: cluster-proportional-autoscaler-1.0.0
+    app.kubernetes.io/name: cluster-proportional-autoscaler
+    app.kubernetes.io/instance: overprovisioning
+    app.kubernetes.io/version: "1.8.4"
+    app.kubernetes.io/managed-by: Helm
+rules:
+  - apiGroups: [""]
+    resources: ["replicationcontrollers/scale"]
+    verbs: ["get", "update"]
+  - apiGroups: ["extensions","apps"]
+    resources: ["deployments/scale", "replicasets/scale"]
+    verbs: ["get", "update"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get"]
+---
+# Source: cluster-proportional-autoscaler/templates/rolebinding.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: overprovisioning-cluster-proportional-autoscaler
+  labels:
+    helm.sh/chart: cluster-proportional-autoscaler-1.0.0
+    app.kubernetes.io/name: cluster-proportional-autoscaler
+    app.kubernetes.io/instance: overprovisioning
+    app.kubernetes.io/version: "1.8.4"
+    app.kubernetes.io/managed-by: Helm
+subjects:
+  - kind: ServiceAccount
+    name: overprovisioning-cluster-proportional-autoscaler
+roleRef:
+  kind: Role
+  name: overprovisioning-cluster-proportional-autoscaler
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: cluster-proportional-autoscaler/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: overprovisioning-cluster-proportional-autoscaler
+  labels:
+    helm.sh/chart: cluster-proportional-autoscaler-1.0.0
+    app.kubernetes.io/name: cluster-proportional-autoscaler
+    app.kubernetes.io/instance: overprovisioning
+    app.kubernetes.io/version: "1.8.4"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cluster-proportional-autoscaler
+      app.kubernetes.io/instance: overprovisioning
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cluster-proportional-autoscaler
+        app.kubernetes.io/instance: overprovisioning
+    spec:
+      serviceAccountName: overprovisioning-cluster-proportional-autoscaler
+      securityContext:
+        {}
+      containers:
+        - name: cluster-proportional-autoscaler
+          securityContext:
+            {}
+          image: "k8s.gcr.io/cpa/cluster-proportional-autoscaler:1.8.4"
+          imagePullPolicy: IfNotPresent
+          args:
+            - --configmap=overprovisioning-cluster-proportional-autoscaler
+            - --logtostderr=true
+            - --namespace=kube-system
+            - --target=deployment/overprovisioning
+            - --v=0
+            - --max-sync-failures=0
+            - --nodelabels=k8s.tubi.io/generic=true
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080

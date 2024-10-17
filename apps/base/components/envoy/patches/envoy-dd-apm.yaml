@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: not-important
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: ec2-metadata
+          args:
+            - -c
+            - |
+              curl -sS http://169.254.169.254/latest/meta-data/placement/availability-zone/ > /etc/ec2-metadata/availability-zone
+              cat /etc/ec2-metadata/availability-zone | rev | cut -c2- | rev > /etc/ec2-metadata/region
+              sed "s/NODE_IP/$NODE_IP/" /etc/envoy/envoy.yaml | sed "s/SERVICE_NAME/$SERVICE_NAME/" > /etc/ec2-metadata/envoy.yaml
+          env:
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: SERVICE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app']
+      volumes:
+        - name: envoy-config
+          configMap:
+            name: envoy-config-dd-apm-otel

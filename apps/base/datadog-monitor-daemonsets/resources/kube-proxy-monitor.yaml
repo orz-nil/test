@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-proxy-monitor
+spec:
+  selector:
+    matchLabels:
+      name: kube-proxy-monitor
+  template:
+    metadata:
+      annotations:
+        ad.datadoghq.com/kube-proxy.check_names: '["kube_proxy"]'
+        ad.datadoghq.com/kube-proxy.init_configs: '[{}]'
+        ad.datadoghq.com/kube-proxy.instances: '[{"prometheus_url": "http://127.0.0.1:10249/metrics"}]'
+      labels:
+        name: kube-proxy-monitor
+    spec:
+      containers:
+      - command:
+        - sleep
+        - infinity
+        image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/busybox:2022-11-24
+        imagePullPolicy: IfNotPresent
+        name: kube-proxy
+        resources:
+          requests:
+            cpu: 50m
+            memory: 50Mi
+      hostNetwork: true
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 0
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+      - effect: NoExecute
+        operator: Exists
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: "30%"
+    type: RollingUpdate

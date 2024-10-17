@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hello-world
+  annotations:
+    hubble-project-id: hello-world
+    hubble-target-id: default
+    hubble-image-name: hello-world
+
+    notifications.argoproj.io/subscribe.on-sync-running.hubble: ""
+    notifications.argoproj.io/subscribe.on-sync-succeeded.hubble: ""
+    notifications.argoproj.io/subscribe.on-health-degraded.hubble: ""
+    notifications.argoproj.io/subscribe.on-sync-failed.hubble: ""
+
+    argocd-image-updater.argoproj.io/image-list: hw=370025973162.dkr.ecr.us-east-2.amazonaws.com/hello-world
+    argocd-image-updater.argoproj.io/hw.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/write-back-method: git:repocreds
+    argocd-image-updater.argoproj.io/write-back-target: kustomization
+spec:
+  destination: {}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

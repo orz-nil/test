@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: datadog-monitor-example1
+spec:
+  selector:
+    matchLabels:
+      app: datadog-monitor-example1
+  template:
+    metadata:
+      labels:
+        service: datadog-monitor-example
+        app: datadog-monitor-example1
+    spec:
+      containers:
+      - name: redis-example
+        image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/redis:6.2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: datadog-monitor-example2
+spec:
+  selector:
+    matchLabels:
+      app: datadog-monitor-example2
+  template:
+    metadata:
+      labels:
+        service: datadog-monitor-example
+        app: datadog-monitor-example2
+      annotations:
+        ad.datadoghq.com/python-example.check_names: '["openmetrics"]'
+        ad.datadoghq.com/python-example.init_configs: '[{}]'
+        ad.datadoghq.com/python-example.instances: |
+          [{"prometheus_url": "http://%%host%%:8080/metrics",
+          "namespace": "datadog-monitor-example",
+          "metrics": ["sample_http_requests_total"]}]
+    spec:
+      containers:
+      - name: python-example
+        image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/python:3.8.5
+        command: ["python", "/app/server.py"]
+        volumeMounts:
+          - name: server-py
+            mountPath: "/app/"
+            readOnly: true
+      volumes:
+        - name: server-py
+          configMap:
+            name: server-py

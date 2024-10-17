@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # friendly distinguishing name
+  name: friendly-name
+  labels:
+    # default service-name that will be read by datadog
+    app: "service-name"
+    # datadog service-name override
+    tags.datadoghq.com/service: "datadog-tags-example"
+spec:
+  replicas: 2
+  template:
+    metadata:
+      annotations:
+        # dict list of tags that will be appended to your service in datadog
+        ad.datadoghq.com/tags: '{"datadog_tag_key1": "datadog_tag_value1", "datadog_tag_key2": "datadog_tag_value2"}'
+      labels:
+        # default service-name that will be read by datadog
+        app: "service-name"
+        # datadog service-name override
+        tags.datadoghq.com/service: "datadog-tags-example"
+    spec:
+      containers:
+        - name: datadog-custom-metrics
+          image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/hello-world:jwu
+          imagePullPolicy: Always
+        - image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/nicolaka/netshoot:v0.11-1
+          command:
+            - sleep
+            - "3600"
+          name: netshoot
+          env:
+          - name: NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_UID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.uid
+          # examples of surfacing envvars with dynamic labels and annotations
+          # NOTE: this is injected by the datadog admission controller
+          #       when the pod is created as long as the tags.datadoghq.com/service
+          #       labels is set on the pod. However, this may be overridden directly
+          #- name: DD_SERVICE
+          #  valueFrom:
+          #    fieldRef:
+          #      fieldPath: metadata.labels['tags.datadoghq.com/service']

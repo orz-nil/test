@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-conf
+data:
+  otel-collector-config: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+    processors:
+      batch:
+        timeout: 10s
+      k8s_tagger:
+    extensions:
+      health_check: {}
+      zpages: {}
+    exporters:
+      file:
+        path: /dev/stdout
+    service:
+      extensions: [health_check, zpages]
+      pipelines:
+        metrics/2:
+          receivers: [otlp]
+          processors: [batch, k8s_tagger]
+          exporters: [file]
+        traces/2:
+          receivers: [otlp]
+          processors: [batch, k8s_tagger]
+          exporters: [file]

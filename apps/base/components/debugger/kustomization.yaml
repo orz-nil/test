@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+patches:
+  - path: patches/debugger.yaml
+    target:
+      kind: Deployment
+      annotationSelector: tubi/enable-debugger=enabled
+
+  - path: patches/debugger.yaml
+    target:
+      kind: ModelSetDeployment
+      annotationSelector: tubi/enable-debugger=enabled
+
+  - path: patches/debugger.yaml
+    target:
+      kind: StatefulSet
+      annotationSelector: tubi/enable-debugger=enabled

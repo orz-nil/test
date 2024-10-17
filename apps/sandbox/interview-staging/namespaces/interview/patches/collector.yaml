@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+spec:
+  minReadySeconds: 5
+  progressDeadlineSeconds: 120
+  replicas: 1
+  template:
+    spec:
+      serviceAccountName: otel-collector
+      containers:
+      - command:
+          - "/otelcontribcol"
+          - "--config=/opt/otel-collector-config.yaml"
+          - "--log-level=warn"
+        image: 370025973162.dkr.ecr.us-east-2.amazonaws.com/otel/opentelemetry-collector-contrib:0.30.0
+        imagePullPolicy: IfNotPresent
+        name: otel-collector
+        resources:
+          limits:
+            cpu: 1
+            memory: 2Gi
+          requests:
+            cpu: 200m
+            memory: 400Mi
+        ports:
+        - containerPort: 55679 # Default endpoint for ZPages.
+        - containerPort: 4317 # Default endpoint for OpenTelemetry receiver.
+        - containerPort: 8888  # Default endpoint for querying metrics.
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 13133 # Health Check extension default port.
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 13133 # Health Check extension default port.
+        volumeMounts:
+        - name: otel-collector-config-vol
+          mountPath: /opt
+      volumes:
+        - configMap:
+            name: otel-collector-conf
+            items:
+              - key: otel-collector-config
+                path: otel-collector-config.yaml
+          name: otel-collector-config-vol

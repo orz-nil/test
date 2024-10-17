@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-agent-conf
+data:
+  otel-agent-config: |
+    receivers:
+      jaeger:
+        protocols:
+          grpc:
+          thrift_compact:
+          thrift_http:
+      otlp:
+        protocols:
+          grpc:
+          http:
+      zipkin:
+    exporters:
+      file:
+        path: /dev/stdout
+      otlp:
+        endpoint: "otel-collector:4317"
+        insecure: true
+    processors:
+      attributes/envoy:
+        actions:
+          - key: http.url
+            pattern: ^(?P<http_protocol>.*):\/\/(?P<http_domain>[a-zA-Z0-9-\.\:]+)(?P<http_path>\/[^\?]*)
+            action: extract
+          - key: http.route
+            from_attribute: http_path
+            action: upsert
+        include:
+          match_type: strict
+          attributes:
+            - key: component
+              value: proxy
+        exclude:
+          match_type: regexp
+          attributes:
+            - key: grpc.path
+              value: ^.+$
+      batch:
+      memory_limiter:
+        # Same as --mem-ballast-size-mib CLI argument
+        ballast_size_mib: 165
+        # 80% of maximum memory up to 2G
+        limit_percentage: 80
+        # 25% of limit up to 2G
+        spike_limit_percentage: 25
+        check_interval: 5s
+      # The resource detector injects the pod IP
+      # to every metric so that the k8s_tagger can
+      # fetch information afterwards.
+      resourcedetection:
+        detectors: [env]
+        timeout: 5s
+        override: false
+      # The k8s_tagger in the Agent is in passthrough mode
+      # so that it only tags with the minimal info for the
+      # collector k8s_tagger to complete
+      k8s_tagger:
+        passthrough: true
+    extensions:
+      health_check: {}
+    service:
+      extensions: [health_check]
+      pipelines:
+        metrics:
+          receivers: [otlp]
+          # resourcedetection must come before k8s_tagger
+          processors: [batch, resourcedetection, k8s_tagger]
+          exporters: [otlp]
+        traces:
+          receivers: [jaeger, zipkin]
+          # resourcedetection must come before k8s_tagger
+          processors: [memory_limiter, resourcedetection, k8s_tagger, batch, attributes/envoy]
+          exporters: [otlp]
